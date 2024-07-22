@@ -1,35 +1,54 @@
+
 #!/usr/bin/node
 
-const filmNumber = process.argv[2];
+const request = require('request');
 
-let characters = [];
-const url = `https://swapi-api.alx-tools.com/api/films/${filmNumber}`;
+const movieId = process.argv[2];
+const filmEndPoint = 'https://swapi-api.hbtn.io/api/films/' + movieId;
+let people = [];
+const names = [];
 
-async function fetchData (url) {
-  try {
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error('Network response was not ok');
+const requestCharacters = async () => {
+  await new Promise(resolve => request(filmEndPoint, (err, res, body) => {
+    if (err || res.statusCode !== 200) {
+      console.error('Error: ', err, '| StatusCode: ', res.statusCode);
+    } else {
+      const jsonBody = JSON.parse(body);
+      people = jsonBody.characters;
+      resolve();
     }
-    return await response.json();
-  } catch (error) {
-    console.error('There has been a problem with your fetch operation:', error);
+  }));
+};
+
+const requestNames = async () => {
+  if (people.length > 0) {
+    for (const p of people) {
+      await new Promise(resolve => request(p, (err, res, body) => {
+        if (err || res.statusCode !== 200) {
+          console.error('Error: ', err, '| StatusCode: ', res.statusCode);
+        } else {
+          const jsonBody = JSON.parse(body);
+          names.push(jsonBody.name);
+          resolve();
+        }
+      }));
+    }
+  } else {
+    console.error('Error: Got no Characters for some reason');
   }
-}
+};
 
-async function main () {
-  try {
-    const filmData = await fetchData(url);
-    characters = filmData.characters;
-    const characterPromises = characters.map(characterUrl => fetchData(characterUrl));
-    const characterData = await Promise.all(characterPromises);
+const getCharNames = async () => {
+  await requestCharacters();
+  await requestNames();
 
-    characterData.forEach((data) => {
-      console.log(`${data.name}`);
-    });
-  } catch (error) {
-    console.error('Error in main function:', error);
+  for (const n of names) {
+    if (n === names[names.length - 1]) {
+      process.stdout.write(n);
+    } else {
+      process.stdout.write(n + '\n');
+    }
   }
-}
+};
 
-main();
+getCharNames();
