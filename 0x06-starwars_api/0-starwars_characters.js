@@ -1,7 +1,5 @@
 #!/usr/bin/node
 
-'use strict';
-
 const filmNumber = process.argv[2];
 
 let characters = [];
