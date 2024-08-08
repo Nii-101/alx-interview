@@ -2,7 +2,7 @@
 """Module for solving the prime game question """
 
 def isWinner(x, nums):
-    """function that checks for winner"""
+    """function checks for winner"""
     if not nums or x < 1:
         return None
     max_num = max(nums)
